@@ -1,0 +1,16 @@
+{
+    "name": "johnny/scorito",
+    "authors": [
+        {
+            "name": "Johnny van de Laar",
+            "email": "j.vandelaar@pararius.nl"
+        }
+    ],
+    "require": {
+        "symfony/var-dumper": "^5.2",
+        "symfony/dom-crawler": "^5.2",
+        "symfony/css-selector": "^5.2",
+        "symfony/http-client": "^5.2",
+        "symfony/cache": "^5.2"
+    }
+}

@@ -9,6 +9,7 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\CacheItem;
+use Symfony\Component\String\Slugger\AsciiSlugger;
 
 require_once('vendor/autoload.php');
 
@@ -75,7 +76,8 @@ class ScoritoKlassier {
 
     public static function formatRiderName(array $rider): string
     {
-        return mb_strtolower($rider['FirstName']) . '-' . mb_strtolower($rider['LastName']);
+        $slugger = new AsciiSlugger();
+        return (string) $slugger->slug($rider['FirstName'] . ' ' . $rider['LastName'])->lower();
     }
 
     protected function addRacesToRider(array $rider, array $races): array
@@ -109,9 +111,20 @@ class ScoritoKlassier {
             foreach ($this->client->stream($responses) as $response => $chunk) {
                 $didFetches = true;
                 if ($chunk->isLast()) {
-                    $races = $this->processProcyclingstats($response);
                     $index = $response->getInfo('user_data')['index'];
                     $cacheItem = $response->getInfo('user_data')['cache_item'];
+
+                    try {
+                        $races = $this->processProcyclingstats($response);
+                    } catch (CyclistNotFound $e) {
+                        try {
+                            $response = $this->fallbackProcyclingstats($riders[$index]);
+                            $races = $this->processProcyclingstats($response);
+                        } catch (Exception $e) {
+                            dump($e);
+                            continue;
+                        }
+                    }
 
                     $cacheItem->set($races);
                     $cacheItem->expiresAfter(24*60*60); // 1 day
@@ -121,6 +134,10 @@ class ScoritoKlassier {
                     $this->cache->save($cacheItem);
 
                     echo "FETCHED: " . self::formatRiderName($riders[$index]) . PHP_EOL;
+                }
+
+                if (200 !== $response->getStatusCode()) {
+                    throw new \Exception($response->getStatusCode() . ' || ' . $response->getInfo('url'));
                 }
             }
 
@@ -141,6 +158,11 @@ class ScoritoKlassier {
     {
         $crawler = new Crawler($response->getContent());
 
+        $title = $crawler->filterXPath('//title')->text();
+        if (str_contains($title, 'Page not found')) {
+            throw new CyclistNotFound($response->getInfo('url'));
+        }
+
         $races = $crawler->filterXPath('//h3[text()="Upcoming participations"]/following-sibling::ul//div[contains(@class, "ellipsis")]')->each(
             function (Crawler $node, $i) {
                 return $node->text();
@@ -153,4 +175,22 @@ class ScoritoKlassier {
         
         return $races;
     }
+
+    protected function fallbackProcyclingstats(array $rider): ResponseInterface
+    {
+        $response = $this->client->request('GET', 'https://www.procyclingstats.com/resources/search.php?searchfrom=&term=' . urlencode($rider['FirstName'] . ' ' . $rider['LastName']));
+        if ($response->getContent() === 'null') {
+            $response = $this->client->request('GET', 'https://www.procyclingstats.com/resources/search.php?searchfrom=&term=' . urlencode($rider['LastName']));
+            if ($response->getContent() === 'null') {
+                throw new CyclistNotFound($rider['FirstName'] . ' ' . $rider['LastName']);
+            }
+            dump($response->toArray());
+        }
+
+        $autoComplete = $response->toArray();
+
+        return  $this->client->request('GET', 'https://www.procyclingstats.com/' . $autoComplete[0]['id']);
+    }
 }
+
+class CyclistNotFound extends \RuntimeException {}

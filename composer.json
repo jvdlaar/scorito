@@ -11,6 +11,8 @@
         "symfony/dom-crawler": "^5.2",
         "symfony/css-selector": "^5.2",
         "symfony/http-client": "^5.2",
-        "symfony/cache": "^5.2"
+        "symfony/cache": "^5.2",
+        "symfony/string": "^5.2",
+        "symfony/translation-contracts": "^2.3"
     }
 }

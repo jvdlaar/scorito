@@ -35,9 +35,20 @@ $scorito = new ScoritoKlassier(
 );
 
 $scoritoData = $scorito->fetch();
-dump($scoritoData);
+// dump($scoritoData);
 
-// write to csv
+$out = fopen('file.csv', 'w');
+fputcsv($out, array_keys($scoritoData[0]));
+
+foreach ($scoritoData as $row) {
+    fputcsv($out, array_map(function ($col) {
+        if (is_array($col)) {
+            return print_r($col, true);
+        }
+        return $col;
+    }, $row));
+}
+fclose($out);
 
 class ScoritoKlassier {
     private HttpClientInterface $client;
@@ -67,6 +78,15 @@ class ScoritoKlassier {
         return mb_strtolower($rider['FirstName']) . '-' . mb_strtolower($rider['LastName']);
     }
 
+    protected function addRacesToRider(array $rider, array $races): array
+    {    
+        $rider['Races'] = count($races);
+        foreach ($this->filterRaces as $race) {
+            $rider[$race] = in_array($race, $races);
+        }
+        return $rider;
+    }
+
     protected function fetchRaces(array $riders): array
     {
         $chunks = array_chunk($riders, 50, true);
@@ -76,7 +96,7 @@ class ScoritoKlassier {
             foreach ($chunk as $index => $rider) {
                 $cacheItem = $this->cache->getItem(self::formatRiderName($rider));
                 if ($cacheItem->isHit()) {
-                    $riders[$index]['Races'] = $cacheItem->get();
+                    $riders[$index] = $this->addRacesToRider($rider, $cacheItem->get());
 
                     echo "CACHE HIT: " . self::formatRiderName($riders[$index]) . PHP_EOL;
                 }
@@ -96,9 +116,9 @@ class ScoritoKlassier {
                     $cacheItem->set($races);
                     $cacheItem->expiresAfter(24*60*60); // 1 day
 
+                    $riders[$index] = $this->addRacesToRider($riders[$index], $races);
+
                     $this->cache->save($cacheItem);
-    
-                    $riders[$index]['Races'] = $races;
 
                     echo "FETCHED: " . self::formatRiderName($riders[$index]) . PHP_EOL;
                 }

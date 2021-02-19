@@ -5,3 +5,4 @@ composer install
 
 ## Run
 php index.php
+Will output a csv to file.csv

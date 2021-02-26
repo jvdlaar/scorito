@@ -77,7 +77,20 @@ class ScoritoKlassier {
     public static function formatRiderName(array $rider): string
     {
         $slugger = new AsciiSlugger();
-        return (string) $slugger->slug($rider['FirstName'] . ' ' . $rider['LastName'])->lower();
+
+        $slug =  (string) $slugger->slug($rider['FirstName'] . ' ' . $rider['LastName'])->lower();
+
+        switch ($slug) {
+            case 'daniel-martin':
+                $slug = 'dan-martin';
+                break;
+            case 'omer-goldshtein':
+                $slug = 'omer-goldstein';
+                break;
+            default;
+                break;
+        }
+        return $slug;
     }
 
     protected function addRacesToRider(array $rider, array $races): array

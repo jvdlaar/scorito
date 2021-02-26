@@ -16,7 +16,7 @@ require_once('vendor/autoload.php');
 $scorito = new ScoritoKlassier(
     173,
     [
-        'Omloop Het Nieuwsblad Elite',
+        'Omloop Het Nieuwsblad ME',
         'Kuurne - Bruxelles - Kuurne',
         'Gent-Wevelgem in Flanders Fields',
         'Dwars door Vlaanderen - A travers la Flandre',

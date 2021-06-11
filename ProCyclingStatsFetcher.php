@@ -60,10 +60,22 @@ class ProCyclingStatsFetcher {
             return $rider;
         }
 
-        return array_merge($rider, $riderSpecialties);
+        return array_merge($rider, array_combine(
+            array_map(fn ($index) => "PCS $index", array_keys($riderSpecialties)),
+            $riderSpecialties
+        ));
     }
 
-    public function fetchRiders(array $riders, bool $addUpcomingRaces, bool $addRiderSpecialties): array
+    protected function addResultsToRider(bool $addResults, array $rider, array $results): array
+    {
+        if (!$addResults) {
+            return $rider;
+        }
+
+        return array_merge($rider, $results);
+    }
+
+    public function fetchRiders(array $riders, bool $addUpcomingRaces, bool $addRiderSpecialties, bool $addResults): array
     {
         $chunks = array_chunk($riders, 50, true);
 
@@ -92,22 +104,25 @@ class ProCyclingStatsFetcher {
                     try {
                         $upcomingRaces = $this->crawlUpcomingRaces($addUpcomingRaces, $response);
                         $specialties = $this->crawlSpecialty($addRiderSpecialties, $response);
+                        $results = $this->crawlResults($addResults, $response);
                     } catch (CyclistNotFound $e) {
                         try {
                             $response = $this->fallbackProCyclingStats($riders[$index]);
                             $upcomingRaces = $this->crawlUpcomingRaces($addUpcomingRaces, $response);
                             $specialties = $this->crawlSpecialty($addRiderSpecialties, $response);
+                            $results = $this->crawlResults($addResults, $response);
                         } catch (Exception $e) {
                             dump($e);
                             continue;
                         }
                     }
 
-                    $cacheItem->set(['upcoming_races' => $upcomingRaces, 'specialties' => $specialties]);
+                    $cacheItem->set(['upcoming_races' => $upcomingRaces, 'specialties' => $specialties, 'results' => $results]);
                     $cacheItem->expiresAfter(24*60*60); // 1 day
 
                     $riders[$index] = $this->addUpcomingRacesToRider($addUpcomingRaces, $riders[$index], $upcomingRaces);
                     $riders[$index] = $this->addSpecialtiesToRider($addRiderSpecialties, $riders[$index], $specialties);
+                    $riders[$index] = $this->addResultsToRider($addResults, $riders[$index], $results);
 
                     $this->cache->save($cacheItem);
 
@@ -184,6 +199,60 @@ class ProCyclingStatsFetcher {
         );
 
         return array_combine($specialtiesLabels, $specialtiesPoints);
+    }
+
+    protected function crawlResults(bool $addResults, ResponseInterface $response): array
+    {
+        if (!$addResults) {
+            return [];
+        }
+
+        $crawler = new Crawler($response->getContent());
+
+        $title = $crawler->filterXPath('//title')->text();
+        if (str_contains($title, 'Page not found')) {
+            throw new CyclistNotFound($response->getInfo('url'));
+        }
+
+        $normal = 0;
+        $itt = 0;
+        $normal5 = 0;
+        $itt5 = 0;
+
+        $crawler->filterXPath('//div[@id="resultsCont"]//tbody//tr')->each(
+            function (Crawler $node) use (&$normal, &$normal5, &$itt, &$itt5) {
+                $date = $node->children()->eq(0)->text();
+                $result = $node->children()->eq(1)->text();
+                $raceName = $node->children()->eq(4)->text();
+
+                if ($date && is_numeric($result) && $raceName) {
+                    $result = (int) $result;
+                    if (str_contains($raceName, '(ITT)')) {
+                        if ($result <= 20) {
+                            $itt++;
+                        }
+                        if ($result <= 5) {
+                            $itt5++;
+                        }
+                    }
+                    else {
+                        if ($result <= 20) {
+                            $normal++;
+                        }
+                        if ($result <= 5) {
+                            $normal5++;
+                        }
+                    }
+                }
+            }
+        );
+
+        return [
+            'ITT Top 20' => $itt,
+            'ITT Top 5' => $itt5,
+            'Race Top 20' => $normal,
+            'Race Top 5' => $normal5,
+        ];
     }
 
     protected function fallbackProCyclingStats(array $rider): ResponseInterface

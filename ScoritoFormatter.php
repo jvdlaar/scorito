@@ -26,4 +26,41 @@ class ScoritoFormatter
 
         return $rider;
     }
+
+    public static function formatType(array $rider): array
+    {
+        $mapping = [
+            1 => 'GC',
+            2 => 'Climber',
+            3 => 'TT',
+            4 => 'Sprinter',
+            5 => 'Attacker',
+            6 => 'Support',
+        ];
+
+        $rider['Type'] = $mapping[$rider['Type']];
+
+        return $rider;
+    }
+
+    public static function formatTeam(array $rider, array $teams): array
+    {
+        foreach ($teams as $team) {
+            if ($team['Id'] === $rider['TeamId']) {
+                $rider['Team'] = $team['Name'];
+            }
+        }
+
+        return $rider;
+    }
+
+    public static function filterColumns(array $rider): array
+    {
+        unset($rider['EventRiderId']);
+        unset($rider['Status']);
+        unset($rider['TeamId']);
+        unset($rider['RiderId']);
+
+        return $rider;
+    }
 }

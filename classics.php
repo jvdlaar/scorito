@@ -65,6 +65,6 @@ class ScoritoClassicsGame {
         $scoritoData = $response->toArray();
 
 
-        return $this->fetcher->fetchRiders($scoritoData['Content'], true, false);
+        return $this->fetcher->fetchRiders($scoritoData['Content'], true, false, true);
     }
 }

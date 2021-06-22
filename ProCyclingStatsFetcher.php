@@ -35,6 +35,27 @@ class ProCyclingStatsFetcher {
             case 'omer-goldshtein':
                 $slug = 'omer-goldstein';
                 break;
+            case 'chris-froome':
+                $slug = 'christopher-froome';
+                break;
+            case 'alexey-lutsenko':
+                $slug = 'aleksey-lutsenko';
+                break;
+            case 'soren-kragh':
+                $slug = 'soren-kragh-andersen';
+                break;
+            case 'fred-wright':
+                $slug = 'alfred-wright';
+                break;
+            case 'magnus-cort':
+                $slug = 'magnus-cort-nielsen';
+                break;
+            case 'ivan-garcia':
+                $slug = 'ivan-garcia-cortina';
+                break;
+            case 'georg-zimmerman':
+                $slug = 'georg-zimmermann';
+                break;
             default;
                 break;
         }
@@ -113,6 +134,7 @@ class ProCyclingStatsFetcher {
                             $results = $this->crawlResults($addResults, $response);
                         } catch (Exception $e) {
                             dump($e);
+                            dump($response->getInfo('url'));
                             continue;
                         }
                     }
@@ -268,7 +290,7 @@ class ProCyclingStatsFetcher {
 
         $autoComplete = $response->toArray();
 
-        return  $this->client->request('GET', 'https://www.procyclingstats.com/' . $autoComplete[0]['id']);
+        return  $this->client->request('GET', 'https://www.procyclingstats.com/rider/' . $autoComplete[0]['id']);
     }
 }
 

@@ -30,12 +30,15 @@ class ScoritoFormatter
     public static function formatType(array $rider): array
     {
         $mapping = [
+            0 => 'Other',
             1 => 'GC',
             2 => 'Climber',
             3 => 'TT',
             4 => 'Sprinter',
             5 => 'Attacker',
             6 => 'Support',
+            7 => 'Cobbles',
+            8 => 'Hills',
         ];
 
         $rider['Type'] = $mapping[$rider['Type']];

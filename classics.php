@@ -5,29 +5,31 @@ declare(strict_types = 1);
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-define('RACE_ID', 173);
+define('RACE_ID', 200);
 
 require_once('vendor/autoload.php');
 require_once('ProCyclingStatsFetcher.php');
+require_once('ScoritoFormatter.php');
 
 $scorito = new ScoritoClassicsGame(
     RACE_ID,
     [
-        'Omloop Het Nieuwsblad ME',
+        'Omloop Het Nieuwsblad Elite',
         'Kuurne - Bruxelles - Kuurne',
+        'Strade Bianche',
+        'Milano - Torino',
+        'Milano-Sanremo',
+        'Minerva Classic Brugge-De Panne',
+        'E3 Saxo Bank Classic',
         'Gent-Wevelgem in Flanders Fields',
         'Dwars door Vlaanderen - A travers la Flandre',
         'Ronde van Vlaanderen - Tour des Flandres',
+        'Scheldeprijs',
+        'Amstel Gold Race',
         'Paris-Roubaix',
-        'E3 Saxo Bank Classic',
-        'Oxyclean Classic Brugge-De Panne',
-        'Milano-Sanremo',
+        'De Brabantse Pijl - La Flèche Brabançonne',
         'La Flèche Wallonne',
         'Liège-Bastogne-Liège',
-        'Strade Bianche',
-        'Scheldeprijs',
-        'De Brabantse Pijl - La Flèche Brabançonne',
-        'Amstel Gold Race',
         'Eschborn-Frankfurt',
     ]
 );
@@ -59,12 +61,28 @@ class ScoritoClassicsGame {
         $this->fetcher = new ProCyclingStatsFetcher($this->client, $filterRaces);
     }
 
+    public function fetchTeams(): array
+    {
+        $response = $this->client->request('GET', 'https://cycling.scorito.com/cycling/v2.0/team');
+        $scoritoData = $response->toArray();
+
+        return $scoritoData['Content'];
+    }
+
     public function fetch(): array
     {
         $response = $this->client->request('GET', 'https://cycling.scorito.com/cyclingteammanager/v2.0/marketrider/' . $this->raceId);
         $scoritoData = $response->toArray();
 
+        $teams = $this->fetchTeams();
 
-        return $this->fetcher->fetchRiders($scoritoData['Content'], true, false, true);
+        $filtered = $scoritoData['Content'];
+
+        $filtered = array_map(['ScoritoFormatter', 'formatQualities'], $filtered);
+        $filtered = array_map(['ScoritoFormatter', 'formatType'], $filtered);
+        $filtered = array_map(fn (array $rider) => ScoritoFormatter::formatTeam($rider, $teams), $filtered);
+        $filtered = array_map(['ScoritoFormatter', 'filterColumns'], $filtered);
+
+        return $this->fetcher->fetchRiders($filtered, true, true, true);
     }
 }

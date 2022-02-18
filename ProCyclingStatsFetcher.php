@@ -56,6 +56,15 @@ class ProCyclingStatsFetcher {
             case 'georg-zimmerman':
                 $slug = 'georg-zimmermann';
                 break;
+            case 'brandon-rivera':
+                $slug = 'brandon-smith-rivera-vargas';
+                break;
+            case 'einer-rubio':
+                $slug = 'einer-augusto-rubio-reyes';
+                break;
+            case 'diego-camargo':
+                $slug = 'diego-andres-camargos';
+                break;
             default;
                 break;
         }

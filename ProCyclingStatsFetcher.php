@@ -63,7 +63,7 @@ class ProCyclingStatsFetcher {
                 $slug = 'einer-augusto-rubio-reyes';
                 break;
             case 'diego-camargo':
-                $slug = 'diego-andres-camargos';
+                $slug = 'diego-andres-camargo';
                 break;
             default;
                 break;

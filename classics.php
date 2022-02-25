@@ -14,7 +14,7 @@ require_once('ScoritoFormatter.php');
 $scorito = new ScoritoClassicsGame(
     RACE_ID,
     [
-        'Omloop Het Nieuwsblad Elite',
+        'Omloop Het Nieuwsblad ME',
         'Kuurne - Bruxelles - Kuurne',
         'Strade Bianche',
         'Milano - Torino',

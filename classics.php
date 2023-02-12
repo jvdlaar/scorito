@@ -5,7 +5,7 @@ declare(strict_types = 1);
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-define('RACE_ID', 200);
+define('RACE_ID', 227);
 
 require_once('vendor/autoload.php');
 require_once('ProCyclingStatsFetcher.php');
@@ -14,13 +14,13 @@ require_once('ScoritoFormatter.php');
 $scorito = new ScoritoClassicsGame(
     RACE_ID,
     [
-        'Omloop Het Nieuwsblad ME',
+        'Omloop Het Nieuwsblad Elite',
         'Kuurne - Bruxelles - Kuurne',
         'Strade Bianche',
-        'Milano - Torino',
+        // 'Milano - Torino',
         'Milano-Sanremo',
-        'Minerva Classic Brugge-De Panne',
-        'E3 Saxo Bank Classic',
+        'Classic Brugge-De Panne',
+        'E3 Saxo Classic',
         'Gent-Wevelgem in Flanders Fields',
         'Dwars door Vlaanderen - A travers la Flandre',
         'Ronde van Vlaanderen - Tour des Flandres',

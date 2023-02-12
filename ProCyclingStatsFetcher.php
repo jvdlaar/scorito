@@ -29,6 +29,12 @@ class ProCyclingStatsFetcher {
         $slug =  (string) $slugger->slug($rider['FirstName'] . ' ' . $rider['LastName'])->lower();
 
         switch ($slug) {
+            case 'negasi-haylu-abreha':
+                $slug = 'negasi-abreha';
+                break;
+            case 'mikkel-frolich-honore':
+                $slug = 'mikkel-honore';
+                break;
             case 'daniel-martin':
                 $slug = 'dan-martin';
                 break;
@@ -191,7 +197,7 @@ class ProCyclingStatsFetcher {
             throw new CyclistNotFound($response->getInfo('url'));
         }
 
-        $upcomingRaces = $crawler->filterXPath('//h3[text()="Upcoming participations"]/following-sibling::ul//div[contains(@class, "ellipsis")]')->each(
+        $upcomingRaces = $crawler->filterXPath('//h3[text()="Upcoming participations"]/following-sibling::span//ul//div[contains(@class, "ellipsis")]')->each(
             function (Crawler $node, $i) {
                 return $node->text();
             }

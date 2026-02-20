@@ -24,7 +24,7 @@ class ProCyclingStatsFetcher {
 
     public static function formatRiderName(array $rider): string
     {
-        $slugger = new AsciiSlugger();
+        $slugger = new AsciiSlugger('en');
 
         $slug =  (string) $slugger->slug($rider['FirstName'] . ' ' . $rider['LastName'])->lower();
 
@@ -71,7 +71,7 @@ class ProCyclingStatsFetcher {
             case 'diego-camargo':
                 $slug = 'diego-andres-camargo';
                 break;
-            default;
+            default:
                 break;
         }
         return $slug;
@@ -197,7 +197,7 @@ class ProCyclingStatsFetcher {
             throw new CyclistNotFound($response->getInfo('url'));
         }
 
-        $upcomingRaces = $crawler->filterXPath('//h3[text()="Upcoming participations"]/following-sibling::span//ul//div[contains(@class, "ellipsis")]')->each(
+        $upcomingRaces = $crawler->filterXPath('//h4[normalize-space()="Program"]/following-sibling::ul//div[contains(@class, "ellipsis")]/a')->each(
             function (Crawler $node, $i) {
                 return $node->text();
             }

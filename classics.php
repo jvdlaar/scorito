@@ -5,7 +5,7 @@ declare(strict_types = 1);
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-define('RACE_ID', 281);
+define('RACE_ID', 302);
 
 require_once('vendor/autoload.php');
 require_once('ProCyclingStatsFetcher.php');
@@ -16,17 +16,19 @@ $scorito = new ScoritoClassicsGame(
     [
         'Omloop Nieuwsblad',
         'Kuurne - Brussel - Kuurne',
+        'Paris-Nice',
+        'Tirreno-Adriatico',
         'Strade Bianche',
         'Milano-Sanremo',
-        'Classic Brugge-De Panne',
+        'Ronde Van Brugge - Tour of Bruges',
         'E3 Saxo Classic',
-        'Gent-Wevelgem in Flanders Fields',
+        'In Flanders Fields - From Middelkerke to Wevelgem',
         'Dwars door Vlaanderen - A travers la Flandre',
         'Ronde van Vlaanderen',
-        'Scheldeprijs ME',
-        'Amstel Gold Race',
-        'Paris-Roubaix',
+        'Scheldeprijs',
+        'Paris-Roubaix Hauts-de-France',
         'De Brabantse Pijl - La Flèche Brabançonne',
+        'Amstel Gold Race',
         'La Flèche Wallonne',
         'Liège-Bastogne-Liège',
     ]
@@ -35,15 +37,21 @@ $scorito = new ScoritoClassicsGame(
 $scoritoData = $scorito->fetch();
 
 $out = fopen('classics.csv', 'w');
-fputcsv($out, array_keys($scoritoData[0]));
+fputcsv($out, array_keys($scoritoData[0]), ",", '"', "\\");
 
 foreach ($scoritoData as $row) {
-    fputcsv($out, array_map(function ($col) {
-        if (is_array($col)) {
-            return print_r($col, true);
-        }
-        return $col;
-    }, $row));
+    fputcsv(
+        $out,
+        array_map(function ($col) {
+            if (is_array($col)) {
+                return print_r($col, true);
+            }
+            return $col;
+        }, $row),
+        ",",
+        '"',
+        "\\",
+    );
 }
 fclose($out);
 
